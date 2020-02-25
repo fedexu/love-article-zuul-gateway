@@ -30,7 +30,10 @@ public class SecurityTokenConfig extends WebSecurityConfigurerAdapter {
 				// allow all who are accessing "auth" service
 				.antMatchers(HttpMethod.POST, jwtConfig.getUri()).permitAll()
 				// Any other request must be authenticated
-				.anyRequest().authenticated();
+				.antMatchers("/articles/**").authenticated()
+				.antMatchers("/favorites/**").authenticated()
+				.antMatchers("/toBeMyUrl/**").authenticated()
+				.anyRequest().permitAll();
 				// At gateway level we want only to have an autorized user access the API GATEWAY. 
 				// Any other profiled authentication will be done by services iteself
 	}
