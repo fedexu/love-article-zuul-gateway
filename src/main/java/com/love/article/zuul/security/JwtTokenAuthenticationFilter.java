@@ -1,7 +1,10 @@
 package com.love.article.zuul.security;
 
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.servlet.FilterChain;
@@ -9,18 +12,23 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
 public class JwtTokenAuthenticationFilter extends  OncePerRequestFilter {
     
-	private final JwtConfig jwtConfig;
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+	
+	@Autowired
+	private JwtConfig jwtConfig;
 	
 	public JwtTokenAuthenticationFilter(JwtConfig jwtConfig) {
 		this.jwtConfig = jwtConfig;
@@ -35,6 +43,7 @@ public class JwtTokenAuthenticationFilter extends  OncePerRequestFilter {
 		
 		// validate the header and check the prefix
 		if(header == null || !header.startsWith(jwtConfig.getPrefix())) {
+			logger.info("Access denied request -> {} request uri-> {}", request, request.getRequestURI());
 			chain.doFilter(request, response);  		// If not valid, go to the next filter.
 			return;
 		}
@@ -70,6 +79,7 @@ public class JwtTokenAuthenticationFilter extends  OncePerRequestFilter {
 				 SecurityContextHolder.getContext().setAuthentication(auth);
 			}
 		} catch (Exception e) {
+			logger.error("ERROR at request -> {} request uri-> {}", request, request.getRequestURI());
 			// In case of failure. Make sure it's clear; so guarantee user won't be authenticated
 			SecurityContextHolder.clearContext();
 		}
